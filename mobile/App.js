@@ -15,7 +15,7 @@ export default function App() {
       .then(res => res.json())
       .then(res => res.isAuthenticated && setIsAuthentificated(true))
       .then(setLoading(false))
-  })
+  }, [])
 
   if (loading) (<Text>Шалом!</Text>)
 

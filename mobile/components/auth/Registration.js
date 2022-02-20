@@ -15,6 +15,7 @@ import GlobalStyles from '../GlobalStyles'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import SelectDropdown from 'react-native-select-dropdown'
 import CheckBox from 'react-native-check-box'
+import BouncyCheckbox from "react-native-bouncy-checkbox";
 import AuthContext from "../../context/AuthContext"
 import { TextInputMask } from 'react-native-masked-text'
 
@@ -29,93 +30,171 @@ const Registration = ({ navigation }) => {
         password: ''
     })
 
-    const [repeatPassword, setRepeatPassword] = useState('')
+    const [repeatPassword, setRepeatPassword] = React.useState('')
     const [isChecked, setIsChecked] = React.useState(false)
 
     const [errors, setErrors] = React.useState({
+        server: '',
         firstName: '',
         lastName: '',
         email: '',
-        birthDate: '',
-        language: '',
+        // birthDate: '',
+        // language: '',
         password: '',
         repeatPassword: '',
         check: ''
     })
 
     const register = async () => {
-        // if (!userData.email) {
-        //     setErrorMessage('Введите Email')
-        //     return
+        let is_empty = false
+        const errorsCopy = JSON.parse(JSON.stringify(errors))
+
+        if (!isChecked) {
+            errorsCopy.check = 'Подтвердите согласие'
+            is_empty = true
+        }
+        if (!repeatPassword) {
+            errorsCopy.repeatPassword = 'Повторите пароль'
+            is_empty = true
+        }
+        if (!userData.password) {
+            errorsCopy.password = 'Укажите пароль'
+            is_empty = true
+        }
+        // if (!userData.language) {
+        //     errorsCopy.language = 'Выберите Язык'
+        //     is_empty = true
         // }
-        // if (!userData.password) {
-        //     setErrorMessage('Введите пароль')
-        //     return
+        // if (!userData.birthDate) {
+        //     errorsCopy.birthDate = 'Укажите дату'
+        //     is_empty = true
         // }
-        // if (!passwordConfirmation) {
-        //     setErrorMessage('Повторите пароль')
-        //     return
-        // }
-        // if (userData.password !== passwordConfirmation) {
-        //     setErrorMessage('Пароли не совпадают')
-        //     return
-        // }
-        await fetch(`http://192.168.2.114:8000/verification`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'applications/json'
-            },
-            body: JSON.stringify({ email: userData.email })
-        })
-            .then(res => res.status === 200 && navigation.navigate('registrationVerification', { userData: userData }))
+        if (!userData.email) {
+            errorsCopy.email = 'Введите Email'
+            is_empty = true
+        }
+        if (!userData.lastName) {
+            errorsCopy.lastName = 'Введите фамилию'
+            is_empty = true
+        }
+        if (!userData.firstName) {
+            errorsCopy.firstName = 'Введите имя'
+            is_empty = true
+        }
+
+        if (is_empty) {
+            setErrors(errorsCopy)
+            return
+        }
+
+        if (!is_empty && !errors.firstName && !errors.lastName && !errors.email && !errors.password && !errors.repeatPassword && !errors.check) {
+            await fetch(`http://192.168.2.114:8000/verification`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'applications/json'
+                },
+                body: JSON.stringify({ email: userData.email })
+            })
+                .then(res => {
+                    if (res.status === 409) setErrors({ ...errors, email: 'Email занят' })
+                    if (res.status === 200) navigation.navigate('registrationVerification', { userData: userData })
+                })
+        }
+    }
+
+    const validate = (inputName, inputValue) => {
+        // const format = /[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/
+        const format = /^[a-zа-я ,.'-]+$/i
+
+        switch (inputName) {
+            case 'firstName':
+
+                // setUserData({ ...userData, firstName: inputValue.replace(format, '') })
+                if (format.test(inputValue) || inputValue == '') {
+                    setErrors({ ...errors, firstName: '' })
+                    setUserData({ ...userData, firstName: inputValue })
+                }
+                break
+
+            case 'lastName':
+                if (format.test(inputValue) || inputValue == '') {
+                    setErrors({ ...errors, lastName: '' })
+                    setUserData({ ...userData, lastName: inputValue })
+                }
+                break
+            case 'email':
+                const emailFormat = /^[a-z0-9@_.-]+$/i
+                if (emailFormat.test(inputValue) || inputValue == '') {
+                    setErrors({ ...errors, email: "" })
+                    setUserData({ ...userData, email: inputValue })
+                }
+                break
+            case 'password':
+                setUserData({ ...userData, password: inputValue })
+                if (errors.password === "Укажите пароль" || inputValue.length >= 8) setErrors({ ...errors, password: '' })
+                if (inputValue === repeatPassword) setErrors({ ...errors, password: '', repeatPassword: '' })
+                break
+            case 'repeatPassword':
+                setRepeatPassword(inputValue)
+                if (errors.repeatPassword === 'Повторите пароль') setErrors({ ...errors, repeatPassword: '' })
+                if (inputValue === userData.password) setErrors({ ...errors, repeatPassword: '' })
+                break
+            default: break
+        }
     }
 
     return (
-        <KeyboardAwareScrollView>
-            <View style={GlobalStyles.container}>
-                <View style={styles.loginDiv}>
+        <SafeAreaView style={GlobalStyles.safe}>
+            <KeyboardAwareScrollView>
+                {/* <View style={GlobalStyles.container}> */}
+                <View style={styles.registerForm}>
                     <Image source={require('../../assets/logo.png')} style={{ width: 150, height: 150 }} />
-                    {/* <Image src={logo} alt="logo" style={styles.logo} /> */}
                     <Text style={{ fontSize: 26, fontWeight: '700' }}>Регистрация</Text>
+                    {errors.server ? <Text>{errors.server}</Text> : null}
                     <View style={styles.formGroup}>
                         <Text style={styles.label}>Имя</Text>
-                        <Text style={styles.inputError}>{errors.firstName && errors.firstName}</Text>
                         <TextInput
-                            style={errors.firstName ? styles.redBorderInput : styles.input}
+                            style={errors.firstName ? GlobalStyles.redBorderInput : GlobalStyles.input}
                             name="firstName"
                             type="text"
                             maxLength={50}
-                            // onChangeText={e => validate(e)}
-                            onChangeText={text => setUserData({ ...userData, firstName: text })}
+                            value={userData.firstName}
+                            onChangeText={text => validate("firstName", text)}
                         />
+                        {errors.firstName ? <Text style={GlobalStyles.inputError}>{errors.firstName}</Text> : null}
+
                     </View>
 
                     <View style={styles.formGroup}>
                         <Text style={styles.label}>Фамилия</Text>
-                        <Text style={styles.inputError}>{errors.lastName && errors.lastName}</Text>
                         <TextInput
-                            style={errors.firstName ? styles.redBorderInput : styles.input}
+                            style={errors.lastName ? GlobalStyles.redBorderInput : GlobalStyles.input}
                             name="lastName"
                             type="text"
                             maxLength={50}
-                            // onChangeText={e => validate(e)}
-                            onChangeText={text => setUserData({ ...userData, lastName: text })}
-
+                            value={userData.lastName}
+                            onChangeText={text => validate("lastName", text)}
                         />
-
+                        {errors.lastName ? <Text style={GlobalStyles.inputError}>{errors.lastName}</Text> : null}
                     </View>
 
                     <View style={styles.formGroup}>
                         <Text style={styles.label}>Электронная почта</Text>
-                        <Text style={styles.inputError}>{errors.email && errors.email}</Text>
                         <TextInput
-                            style={errors.email ? styles.redBorderInput : styles.input}
+                            style={errors.email ? GlobalStyles.redBorderInput : GlobalStyles.input}
                             name="email"
                             type="email"
+                            textContentType="emailAddress"
                             maxLength={62}
-                            // onChangeText={e => validate(e)}
-                            onChangeText={text => setUserData({ ...userData, email: text })}
+                            value={userData.email}
+                            onChangeText={text => validate("email", text)}
+                            onBlur={() => {
+                                const emailFormat = /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/;
+                                if (userData.email && !emailFormat.test(userData.email)) setErrors({ ...errors, email: "Неправильный email" })
+                                else setErrors({ ...errors, email: '' })
+                            }}
                         />
+                        {errors.email ? <Text style={GlobalStyles.inputError}>{errors.email}</Text> : null}
                     </View>
 
                     {/* <View style={styles.formGroup}>
@@ -152,64 +231,56 @@ const Registration = ({ navigation }) => {
 
                     <View style={styles.formGroup}>
                         <Text style={styles.label}>Пароль</Text>
-                        <Text style={styles.inputError}>{errors.password && errors.password}</Text>
                         <TextInput
-                            style={errors.password ? styles.redBorderInput : styles.input}
+                            style={errors.password ? GlobalStyles.redBorderInput : GlobalStyles.input}
                             name="password"
                             type="password"
+                            textContentType="password"
+                            secureTextEntry
                             maxLength={256}
-                            onChangeText={e => {
-                                if (errors.password === "Укажите пароль" || e.target.value.length >= 8) {
-                                    setErrors({ ...errors, password: '' })
-                                    setUserData({ ...userData, password: e.target.value })
-                                }
+                            value={userData.password}
+                            onChangeText={text => validate('password', text)}
+                            onBlur={() => {
+                                if (userData.password.length !== 0 && userData.password.length < 8) setErrors({ ...errors, password: 'Минимум 8 символов' })
                             }}
-                            // onBlur={e => validate(e)}
-                            onChangeText={text => setUserData({ ...userData, password: text })}
-
                         />
+                        {errors.password ? <Text style={GlobalStyles.inputError}>{errors.password}</Text> : null}
                     </View>
                     <View style={styles.formGroup}>
                         <Text style={styles.label}>Повторите пароль</Text>
-                        <Text style={styles.inputError}>{errors.repeatPassword && errors.repeatPassword}</Text>
                         <TextInput
-                            style={errors.repeatPassword ? styles.redBorderInput : styles.input}
+                            style={errors.repeatPassword ? GlobalStyles.redBorderInput : GlobalStyles.input}
                             name="repeatPassword"
                             type="password"
+                            textContentType="password"
+                            secureTextEntry
                             maxLength={256}
-                            onChangeText={e => {
-                                if (errors.repeatPassword === 'Повторите пароль') setErrors({ ...errors, repeatPassword: '' })
-                                if (e.target.value === userData.password) {
-                                    setErrors({ ...errors, repeatPassword: '' })
-                                    setRepeatPassword(e.target.value)
-                                }
+                            value={repeatPassword}
+                            onChangeText={text => validate('repeatPassword', text)}
+                            onBlur={() => {
+                                if (repeatPassword && repeatPassword !== userData.password) setErrors({ ...errors, repeatPassword: 'Пароли не совпадают' })
                             }}
-                            // onBlur={e => validate(e)}
-                            onChangeText={text => setRepeatPassword(text)}
-
                         />
-
+                        {errors.repeatPassword ? <Text style={GlobalStyles.inputError}>{errors.repeatPassword}</Text> : null}
                     </View>
-                    {/* <View style={styles.formGroup}>
-                        <Text style={styles.inputError}>{errors.check && errors.check}</Text>
-                        <TextInput
-                            id="permissionCheckBox"
-                            style={{ bottom: 0 }}
-                            type="checkbox"
-                            onChangeText={e => {
-                                if (e.target.checked) setErrors({ ...errors, check: '' })
-                                setCheck(e.target.checked)
-                            }}
-                        />
-                    </View> */}
 
                     <View style={styles.formGroup}>
-                        <CheckBox
-                            style={{ flex: 1, padding: 10 }}
-                            onClick={() => setIsChecked(!isChecked)}
-                            isChecked={isChecked}
-                            rightText={"Согласие на получение рассылок по почте"}
-                        />
+                        <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20, marginBottom: 10 }}>
+                            <BouncyCheckbox
+                                size={25}
+                                fillColor="red"
+                                unfillColor="#FFFFFF"
+                                // text="Согласие на получение рассылок по почте"
+                                iconStyle={{ borderColor: "red" }}
+                                // textStyle={{ fontFamily: "JosefinSans-Regular" }}
+                                onPress={isChecked => {
+                                    setIsChecked(isChecked)
+                                    if (isChecked) setErrors({ ...errors, check: '' })
+                                }}
+                            />
+                            <Text style={{}}>Согласие на получение рассылок по почте</Text>
+                        </View>
+                        {errors.check ? <Text style={GlobalStyles.inputError}>{errors.check}</Text> : null}
                     </View>
 
                     <View style={styles.buttonWrapper}>
@@ -217,39 +288,27 @@ const Registration = ({ navigation }) => {
                         <View style={styles.textCenter}><Text>Уже есть аккаунт?</Text><TouchableOpacity onPress={() => navigation.navigate('login')}><Text style={styles.link}> Войти</Text></TouchableOpacity></View>
                     </View>
                 </View>
-            </View>
-        </KeyboardAwareScrollView>
-        // <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : "height"}>
-        //     <View style={styles.form}>
-        //         <Text style={styles.header}>Регистрация</Text>
-        //         {errorMessage ? <Text>{errorMessage}</Text> : null}
-        //         <TextInput
-        //             style={styles.input}
-        //             placeholder="Email"
-        //             onChangeText={(text) => setUserData({ ...userData, email: text })}
-        //         />
-        //         <TextInput
-        //             style={styles.input}
-        //             placeholder="Пароль"
-        //             onChangeText={(text) => setUserData({ ...userData, password: text })}
-        //         />
-        //         <TextInput
-        //             style={styles.input}
-        //             placeholder="Повторите пароль"
-        //             onChangeText={(text) => setPasswordConfirmation(text)}
-        //         />
-        //         <TouchableOpacity style={styles.button} onPress={register}>
-        //             <Text style={styles.text}>Зарегистрироваться</Text>
-        //         </TouchableOpacity>
-        //     </View>
-        // </KeyboardAvoidingView>
-    );
-};
+                {/* </View> */}
+            </KeyboardAwareScrollView>
+
+        </SafeAreaView>
+    )
+}
 
 export default Registration;
 
-
 const styles = {
+    registerForm: {
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+
+        padding: 30,
+        minWidth: 320,
+        width: '100%',
+
+        backgroundColor: 'white',
+    },
     loginDiv: {
         width: '100%',
         paddingVertical: 50,
@@ -262,14 +321,9 @@ const styles = {
         justifyContent: 'center',
         alignItems: 'center'
     },
-    logo: {
-        // height: 200,
-        // marginBottom: 20
-    },
     label: {
         fontSize: 16,
         fontWeight: '700',
-        marginBottom: -10
     },
     input: {
         paddingLeft: 10,
@@ -316,27 +370,11 @@ const styles = {
         position: 'relative',
         padding: 10,
     },
-    inputError: {
-        // position: 'absolute',
-        // whiteSpace: 'nowrap',
-        // left: '50%',
-        // bottom: -5,
-        // transform: 'translate(-50%, 100%)',
-        // paddingLeft: 10,
-        // paddingTop: 5,
-        // paddingRight: 10,
-        // paddingBottom: 5,
-        // fontSize: 12,
-        // backgroundColor: 'rgba(216, 24, 24, 0.698)',
-        // borderRadius: 5,
-        // color: 'white'
-    },
     buttonWrapper: {
         width: '100%',
         justifyContent: 'center',
         alignItems: 'center',
         padding: 10,
-
     },
     button: {
         width: '90%',
@@ -364,52 +402,3 @@ const styles = {
         color: 'blue'
     }
 }
-
-// const styles = StyleSheet.create({
-//     container: {
-//         flex: 1,
-//         justifyContent: "center",
-//         alignItems: "center",
-//         backgroundColor: "tomato",
-//     },
-//     form: {
-//         padding: 30,
-//         width: Dimensions.get("screen").width - 60,
-//         backgroundColor: "white",
-//         alignItems: "center",
-//         justifyContent: "space-between",
-//         borderRadius: 15,
-//     },
-//     header: {
-//         fontSize: 30,
-//         marginBottom: 30,
-//         fontFamily: "sans-serif",
-//         fontWeight: "700",
-//         color: "black",
-//     },
-//     input: {
-//         borderColor: "black",
-//         borderWidth: 1,
-//         borderRadius: 8,
-//         width: "100%",
-//         padding: 5,
-//         paddingHorizontal: 10,
-//         marginBottom: 10,
-//         backgroundColor: "white",
-//         fontFamily: "sans-serif",
-//     },
-//     button: {
-//         backgroundColor: "red",
-//         width: "100%",
-//         padding: 10,
-//         marginVertical: 10,
-//         borderRadius: 10,
-//     },
-//     text: {
-//         textAlign: "center",
-//         color: "white",
-//         fontFamily: "sans-serif",
-//         fontSize: 16,
-//         fontWeight: "700",
-//     },
-// });

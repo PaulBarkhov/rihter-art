@@ -218,19 +218,22 @@ def profile(requset, pk):
 @csrf_exempt
 def verification_view(request):
     data = json.loads(request.body.decode("utf-8"))
-    code = random.randint(1111, 9999)
-    request.session['reset_password'] = {
-        "email": data["email"],
-        "code": code
-    }
-    send_mail(
-        'Код подтверждения',
-        f'Ваш код подтверждения: {code} \n\nЕсли вы не запрашивали код, игнорируйте это письмо и никому не говорите этот код. \n\n P.S. Привет всем пусечкам лапотусечкам',
-        'pavelbarhov@gmail.com',
-        [data["email"]],
-        fail_silently=False,
-    )
-    return HttpResponse(status=200)
+    if User.objects.filter(email = data['email']).exists():
+        return HttpResponse('qweqweqwe', status=409)
+    return HttpResponse(status=409)
+    # code = random.randint(1111, 9999)
+    # request.session['reset_password'] = {
+    #     "email": data["email"],
+    #     "code": code
+    # }
+    # send_mail(
+    #     'Код подтверждения',
+    #     f'Ваш код подтверждения: {code} \n\nЕсли вы не запрашивали код, игнорируйте это письмо и никому не говорите этот код. \n\n P.S. Привет всем пусечкам лапотусечкам',
+    #     'pavelbarhov@gmail.com',
+    #     [data["email"]],
+    #     fail_silently=False,
+    # )
+    # return HttpResponse(status=400)
 
 
 @csrf_exempt

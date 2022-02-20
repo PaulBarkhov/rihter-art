@@ -1,25 +1,24 @@
-import { StyleSheet, Dimensions, Platform, StatusBar } from 'react-native'
-
-const GlobalStyles = StyleSheet.create({
-
+const GlobalStyles = {
     container: {
-        flex: 1,
+        display: 'flex',
+        minHeight: '100vh',
         justifyContent: 'center',
         alignItems: 'center',
+
+        maxWidth: 800,
+        margin: '0 auto',
+
         backgroundColor: 'tomato',
     },
     button: {
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
         width: '100%',
-        marginVertical: 10,
+        margin: 10,
         padding: 10,
         backgroundColor: 'tomato',
-        borderColor: 'grey',
-        borderWidth: 0.5,
         borderRadius: 5,
-        justifyContent: 'center',
-        alignItems: 'center'
-    },
-    buttonText: {
         fontSize: 16,
         color: 'white',
         fontWeight: '700'
@@ -36,8 +35,7 @@ const GlobalStyles = StyleSheet.create({
         borderWidth: 1,
         borderRadius: 5,
         width: '100%',
-        padding: 10,
-        paddingHorizontal: 15,
+        padding: '10px 15px',
         marginBottom: 10,
         backgroundColor: 'white',
         fontFamily: 'sans-serif'
@@ -48,17 +46,18 @@ const GlobalStyles = StyleSheet.create({
         borderRadius: 5,
         width: '100%',
         paddingLeft: 15,
-        paddingTop: 9,
+        paddingTop: 10,
         paddingRight: 15,
-        paddingBottom: 9,
+        paddingBottom: 10,
         marginBottom: 10,
 
     },
     inputError: {
         position: 'absolute',
+        whiteSpace: 'nowrap',
         // left: '50%',
-        bottom: -3,
-        left: 13,
+        bottom: 0,
+        transform: 'translateY(50%)',
         paddingLeft: 10,
         paddingTop: 3,
         paddingRight: 10,
@@ -68,9 +67,7 @@ const GlobalStyles = StyleSheet.create({
         borderRadius: 5,
         color: 'white'
     },
-    safe: {
-        paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0
-    }
-})
+
+}
 
 export default GlobalStyles

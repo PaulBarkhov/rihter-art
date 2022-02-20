@@ -1,9 +1,9 @@
 import { StyleSheet, View, Text, Button, Image, TextInput, KeyboardAvoidingView, ScrollView, Dimensions, Pressable } from 'react-native'
 import { useState } from 'react'
-import * as ImagePicker from 'expo-image-picker';
-import ImageModal from 'react-native-image-modal';
-import { MaterialIcons } from "@expo/vector-icons";
-import { Audio } from 'expo-av';
+import * as ImagePicker from 'expo-image-picker'
+import ImageModal from 'react-native-image-modal'
+import { MaterialIcons } from "@expo/vector-icons"
+import { Audio } from 'expo-av'
 
 const Practice = ({ route }) => {
     const [images, setImages] = useState([])

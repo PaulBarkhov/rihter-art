@@ -109,3 +109,15 @@ select.input {
   flex-direction: column;
   padding: 10px;
 }
+
+.view {
+  display: flex;
+}
+
+.touchableOpacity {
+  transition: opacity .1s linear;
+}
+
+.touchableOpacity:hover {
+  cursor: pointer;
+}

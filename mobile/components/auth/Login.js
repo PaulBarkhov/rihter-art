@@ -2,6 +2,7 @@ import React from 'react'
 import { Dimensions, StyleSheet, Text, TextInput, View, Button, TouchableOpacity, KeyboardAvoidingView, Image } from 'react-native'
 import AuthContext from '../../context/AuthContext'
 import WebView from 'react-native-webview'
+import GlobalStyles from '../GlobalStyles'
 
 const Login = ({ navigation, route }) => {
     const [errorMessage, setErrorMessage] = React.useState('')
@@ -43,21 +44,21 @@ const Login = ({ navigation, route }) => {
     };
     return (
 
-        <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : "height"}>
-            <View style={styles.form}>
+        <KeyboardAvoidingView style={GlobalStyles.container} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+            <View style={styles.loginForm}>
                 <Image source={require('../../assets/logo.png')} style={{ width: 150, height: 150, marginBottom: 10 }} />
                 {errorMessage ? <Text>{errorMessage}</Text> : null}
                 <TextInput
-                    style={styles.input}
+                    style={GlobalStyles.input}
                     placeholder='Email'
                     onChangeText={text => setUserData({ ...userData, email: text })}
                 />
                 <TextInput
-                    style={styles.input}
+                    style={GlobalStyles.input}
                     placeholder='Password'
                     onChangeText={text => setUserData({ ...userData, password: text })}
                 />
-                <TouchableOpacity onPress={login} style={styles.button}><Text style={styles.text}>Войти</Text></TouchableOpacity>
+                <TouchableOpacity onPress={login} style={GlobalStyles.button}><Text style={styles.text}>Войти</Text></TouchableOpacity>
                 <View style={{ flexDirection: 'row' }}><Text>Нет аккаунта? </Text><TouchableOpacity onPress={() => navigation.navigate('registration')} style={{ flexDirection: 'row' }}><Text style={{ color: 'blue' }}>Регистрация</Text></TouchableOpacity></View>
                 <TouchableOpacity onPress={() => navigation.navigate('resetPassword')} style={{ flexDirection: 'row' }}><Text style={{ color: 'blue' }}>Забыли пароль?</Text></TouchableOpacity>
             </View>
@@ -73,6 +74,18 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: 'tomato',
+    },
+    loginForm: {
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+
+        padding: 30,
+        minWidth: 320,
+        width: Dimensions.get('screen').width - 60,
+
+        backgroundColor: 'white',
+        borderRadius: 15
     },
     form: {
         padding: 30,
